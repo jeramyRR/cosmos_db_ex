@@ -2,6 +2,10 @@
 
 This (unofficial) client library enables client applications targeting Elixir to connect to Azure Cosmos DB via the DocumentDB (SQL) API. For more information on Cosmos Db, refer to https://azure.microsoft.com/services/cosmos-db/.
 
+## Status
+
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs) ![main build status](https://github.com/jeramyRR/cosmos_db_ex/actions/workflows/elixir.yml/badge.svg)
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
@@ -20,14 +24,5 @@ end
 To run tests, run the following command
 
 ```bash
-  mix test
+mix test
 ```
-
-  
-## Badges
-
-Add badges from somewhere like: [shields.io](https://shields.io/)
-
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
-
-![main build status](https://github.com/jeramyRR/cosmos_db_ex/actions/workflows/elixir.yml/badge.svg)
