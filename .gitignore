@@ -27,6 +27,7 @@ cosmos_db_ex-*.tar
 
 # Ignore dialyzer's plts
 /priv/plts/**
+!/priv/plts/README.md
 
 # Temporary files for e.g. tests
 /tmp
