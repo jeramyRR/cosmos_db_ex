@@ -22,6 +22,12 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 cosmos_db_ex-*.tar
 
+# Ignore Elixir Language Server
+/.elixir_ls
+
+# Ignore dialyzer's plts
+/priv/plts/**
+!/priv/plts/README.md
 
 # Temporary files for e.g. tests
 /tmp

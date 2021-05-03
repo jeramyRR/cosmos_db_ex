@@ -1,0 +1,16 @@
+# ./docker-compose.yml
+
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cosmos_db_ex_remote_app
+    command: >
+      sleep infinity
+    volumes:
+      - .:/workspace
+      - ~/.gitconfig:/root/.gitconfig
+      - ~/.ssh:/root/.ssh

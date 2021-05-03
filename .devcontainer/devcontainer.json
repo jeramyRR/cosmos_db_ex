@@ -1,0 +1,19 @@
+{
+	"name": "CosmosDbEx Remote",
+	"dockerComposeFile": [
+		"../docker-compose.yml"
+	],
+	"extensions": [
+		"jakebecker.elixir-ls",
+		"florinpatrascu.vscode-elixir-snippets",
+		"saratravi.elixir-formatter",
+		"sadesyllas.elixir-module-autoname",
+		"robbowen.synthwave-vscode",
+		"visualstudioexptteam.vscodeintellicode",
+		"ckolkman.vscode-postgres",
+		"hookyqr.beautify"
+	],
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"shutdownAction": "stopCompose"
+}
