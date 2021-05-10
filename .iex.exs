@@ -1,0 +1,1 @@
+alias CosmosDbEx.Client
