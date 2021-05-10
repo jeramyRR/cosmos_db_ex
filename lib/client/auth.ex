@@ -86,33 +86,4 @@ defmodule CosmosDbEx.Client.Auth do
     |> String.downcase()
   end
 
-  def build_resource_link(path) do
-    split = path
-    |> String.split("/")
-
-    IO.puts "split: #{inspect split}"
-
-    reverse = split
-    |> Enum.reverse()
-    IO.puts "reverse: #{inspect reverse}"
-
-    filtered = reverse
-    |> filter_resource_link()
-
-    IO.puts "filtered: #{inspect filtered}"
-
-    filtered
-    |> Enum.reverse()
-    |> Enum.join("/")
-  end
-
-  @resource_types ["dbs", "colls", "docs"]
-  def filter_resource_link([h | t]) when h in @resource_types do
-    IO.puts "returning t: #{t}"
-    t
-  end
-  def filter_resource_link(list) do
-    IO.puts "returning list: #{inspect list}"
-    list
-  end
 end

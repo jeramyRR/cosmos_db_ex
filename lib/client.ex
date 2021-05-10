@@ -47,7 +47,7 @@ defmodule CosmosDbEx.Client do
     ]
   end
 
-  # Cosmos DB Rest API requires a the date to be in
+  # Cosmos DB Rest API requires a the date to be in a specific format.
   defp get_datetime_now() do
     DateTime.utc_now()
     |> Timezone.convert("GMT")
@@ -85,6 +85,10 @@ defmodule CosmosDbEx.Client do
         body: Jason.decode!(body)
       }
     }
+  end
+
+  defp get_request_charge(headers) do
+
   end
 
   defp parse_response(
