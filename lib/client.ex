@@ -1,147 +1,87 @@
 defmodule CosmosDbEx.Client do
-  use Timex
-  alias CosmosDbEx.Client.Auth
+  @moduledoc """
 
-  # TODO(wisingle): Figure out a better way to get this configuration value that doesn't require
-  # TODO(wisingle): the lib user to set env vars.
-  @host_url System.get_env("COSMOS_DB_HOST_URL")
 
-  def get_document(database, collection, id, partition_keys) do
-    "dbs/#{database}/colls/#{collection}/docs/#{id}"
-    |> send_get_request("docs", id, partition_keys)
-    |> parse_response()
+  """
+  alias CosmosDbEx.Client.Documents
+
+  @doc """
+  Retrieve a document by it's document id and partition key.
+
+  # Examples
+    iex> container = CosmosDbEx.Client.Container.new("database", "container")
+    iex> item_id = "00000000-0000-0000-0000-000000000000"
+    iex> partition_key = item_id
+    iex> CosmosDbEx.Client.get_document(container, item_id, partition_key)
+    %CosmosDbEx.Response{
+      body: %{
+        "_attachments" => "attachments/",
+        "_etag" => ""00000000-0000-0000-0000-000000000000"",
+        "_rid" => "AAAAAAAAAAAAAAAAA==",
+        "_self" => "dbs/AAAAAA==/colls/AAAAAAAAAAA=/docs/AAAAAAAAAAAAAAAAAAAAAA==/",
+        "_ts" => 1620141668,
+        "id" => "00000000-0000-0000-0000-000000000000",
+        "name" => "Test item"
+      },
+      request_charge: "1",
+      request_duration: "0.585"
+    }}
+
+  """
+  def get_document(container, id, partition_key) do
+    container
+    |> Documents.get_item(id, partition_key)
   end
 
+  @doc """
+  Creates a new document in the specified database and container.
+
+  Documents can be any struct that implements the CosmosDbEx.Client.Documents.Identifiable protocol,
+  or any struct or map that contains an id field.  The Identifiable protocol contains a single
+  function that must be implemented, called get_id().  You can return a string in any format to
+  represent the id given to CosmosDb.
+
+  Every request will return a tuple containing the status of the request as well as any information
+  Cosmos Db returned in the body of the response. The only exception is when our call to the Rest
+  API fails for a non-CosmosDb related issue
+
+  Here are the tuple pairs returned for the following situations:
+
+  * `{:ok, %CosmosDbEx.Response{}}` - The operation was successful.
+  * `{:bad_request, %CosmosDbEx.Response{}}` - The JSON body is invalid.
+  * `{:storage_limit_reached, %CosmosDbEx.Response{}}` - The operation could not be completed because
+     the storage limit of the partition has been reached.
+  * `{:conflict, %CosmosDbEx.Response{}}` - The ID provided for the new document has been taken by
+     an existing document.
+  * `{:entity_too_large, %CosmosDbEx.Response{}}` - The document size in the request exceeded the
+     allowable document size.
+  * `{:error, error} - Any errors encountered by our http client that aren't related to CosmosDb.
 
 
-  defp send_get_request(path, resource_type, resource_id, partition_keys) do
-    key = get_cosmos_db_key()
-    key_type = "master"
+  # Examples
 
-    date = get_datetime_now()
-
-    headers = get_headers("get", resource_type, resource_id, partition_keys, date, key, key_type)
-
-    url = build_request_url(path)
-
-    IO.puts "Sending to #{url}"
-
-    Finch.build(:get, url, headers)
-    |> Finch.request(CosmosDbEx.Application)
-  end
-
-  defp build_request_url(path), do: "https://#{@host_url}/#{path}"
-
-  defp get_headers(http_verb, resource_type, resource_id, partition_keys, date, key, key_type) do
-    auth_signature =
-      Auth.generate_auth_signature(http_verb, resource_type, resource_id, date, key, key_type)
-
-    partition_keys_json = Jason.encode!([partition_keys])
-
-    [
-      {"Authorization", auth_signature},
-      {"Accept", "application/json"},
-      {"x-ms-date", date},
-      {"x-ms-version", "2018-12-31"},
-      {"x-ms-documentdb-partitionkey", partition_keys_json}
-    ]
-  end
-
-  # Cosmos DB Rest API requires a the date to be in a specific format.
-  defp get_datetime_now() do
-    DateTime.utc_now()
-    |> Timezone.convert("GMT")
-    |> Timex.format!("%a, %d %b %Y %H:%M:%S GMT", :strftime)
-    |> String.downcase()
-  end
-
-  defp get_cosmos_db_key do
-    key = Application.get_env(:cosmos_db_ex, :cosmos_db_key)
-
-    if key do
-      key
-    else
-      IO.puts "Getting key from environment"
-      System.get_env("COSMOS_DB_KEY")
-    end
-  end
-
-  defp parse_response(
+    iex> item = %{ name: "ACME hair dryer", id: "ACME-HD-WOLF01234", location: "Bottom of a cliff"}
+    iex> container = CosmosDbEx.Client.Container.new("database", "container")
+    iex> container |> CosmosDbEx.Client.create_document(item, item.name)
     {:ok,
-     %Finch.Response {
-       body: body,
-       headers: [
-         {"cache-control", cache}
-       ],
-       status: 200
-      }
-    }
-  ) do
-    {
-      :ok,
-      %{
-        #request_charge: request_charge,
-        #request_duration: request_duration,
-        body: Jason.decode!(body)
-      }
-    }
-  end
+     %CosmosDbEx.Response{
+       body: %{
+         "_attachments" => "attachments/",
+         "_etag" => "00000000-0000-0000-0000-000000000000",
+         "_rid" => "AAAAAAAAAAAAAAAAA==",
+         "_self" => "dbs/AAAAAA==/colls/AAAAAAAAAAA=/docs/AAAAAAAAAAAAAAAAAAAAAA==/",
+         "_ts" => 1620141668,
+         "id" => "ACME-HD-WOLF01234",
+         "location" => "Bottom of a cliff",
+         "name" => "ACME hair dryer"
+       },
+       request_charge: "6.29",
+       request_duration: "5.328"
+     }}
 
-  defp get_request_charge(headers) do
-
-  end
-
-  defp parse_response(
-    {:ok,
-     %Finch.Response {
-       body: body,
-       headers: headers,
-       status: 200
-      }
-    }
-  ) do
-    {
-      :ok,
-      %{
-        headers: headers,
-        body: Jason.decode!(body)
-      }
-    }
-  end
-
-  defp parse_response(
-    {:ok,
-     %Finch.Response {
-       status: 404,
-       headers: [
-       "x-ms-request-chart": request_charge,
-       "x-ms-request-duration-ms": request_duration,
-       ],
-       body: body
-      }
-    }
-  ) do
-    {
-      :not_found,
-      %{
-        request_charge: request_charge,
-        request_duration: request_duration,
-        body: Jason.decode!(body)
-      }
-    }
-  end
-
-  defp parse_response(
-    {:ok,
-     %Finch.Response {
-       status: 401,
-       body: body
-      }
-    }
-  ) do
-    {
-      :unauthorized,
-      body: Jason.decode!(body)
-    }
+  """
+  def create_document(container, document, partition_key) do
+    container
+    |> Documents.create_item(document, partition_key)
   end
 end

@@ -44,33 +44,48 @@ defmodule CosmosDbEx.Client.Auth do
   """
   def generate_auth_signature(
         http_verb,
-        resource_type,
-        resource_id,
+        path,
         date,
         key,
         key_type \\ "master",
         token_version \\ "1.0"
       ) do
-
     verb = normalize_payload_part(http_verb)
-    res_type = normalize_payload_part(resource_type)
 
-    res_id = String.trim(resource_id) |> String.downcase()
+    resource_type = build_resource_type(path)
+    resource_link = build_resource_link(path)
+
     date = String.downcase(date)
 
-    resource_link = "dbs/TestItems/colls/Items/docs/#{res_id}"
-
-    payload = "#{verb}\n#{res_type}\n#{resource_link}\n#{date}\n\n"
-
-    IO.puts("Payload: #{payload}")
-
+    payload = "#{verb}\n#{resource_type}\n#{resource_link}\n#{date}\n\n"
     signature = get_signature(key, payload)
-
     token = "type=#{key_type}&ver=#{token_version}&sig=#{signature}"
-    IO.puts("#{token}")
 
     URI.encode_www_form(token)
   end
+
+  defp build_resource_type(path) do
+    path
+    |> String.split("/")
+    |> Enum.reverse()
+    |> get_resource_type()
+  end
+
+  @resource_types ["dbs", "colls", "docs"]
+  defp get_resource_type([h | _t]) when h in @resource_types, do: h
+  defp get_resource_type([_h | t]), do: get_resource_type(t)
+
+  defp build_resource_link(path) do
+    path
+    |> String.split("/")
+    |> Enum.reverse()
+    |> filter_resource_link()
+    |> Enum.reverse()
+    |> Enum.join("/")
+  end
+
+  defp filter_resource_link([h | t]) when h in @resource_types, do: t
+  defp filter_resource_link(list), do: list
 
   defp get_signature(key, payload) do
     decoded_key = key |> Base.decode64!()
@@ -85,5 +100,4 @@ defmodule CosmosDbEx.Client.Auth do
     |> String.trim()
     |> String.downcase()
   end
-
 end

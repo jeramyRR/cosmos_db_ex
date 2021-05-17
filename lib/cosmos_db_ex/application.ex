@@ -5,6 +5,8 @@ defmodule CosmosDbEx.Application do
 
   use Application
 
+  alias CosmosDbEx.Client.Config
+
   @impl true
   def start(_type, _args) do
     children = [
@@ -24,8 +26,13 @@ defmodule CosmosDbEx.Application do
       Finch,
       name: __MODULE__,
       pools: %{
-        :default => [size: 32, count: 8]
+        :default => [size: 10],
+        get_cosmos_host_url() => [size: 32, count: 8]
       }
     }
+  end
+
+  defp get_cosmos_host_url do
+    "https://#{Config.get_cosmos_host_url()}"
   end
 end
