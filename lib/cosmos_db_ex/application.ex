@@ -5,7 +5,7 @@ defmodule CosmosDbEx.Application do
 
   use Application
 
-  alias CosmosDbEx.Client.Config
+  alias CosmosDbEx.Config
 
   @impl true
   def start(_type, _args) do
