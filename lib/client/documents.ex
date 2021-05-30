@@ -14,10 +14,15 @@ defmodule CosmosDbEx.Client.Documents do
     for a list of common response headers.
 
   """
+  require Logger
 
   use Timex
   alias CosmosDbEx.Response
-  alias CosmosDbEx.Client.{Auth, Config}
+  alias CosmosDbEx.Client.{Auth, Config, Container}
+
+  @request_charge_header "x-ms-request-charge"
+  @request_duration_header "x-ms-request-duration-ms"
+  @continuation_token_header "x-ms-continuation"
 
   defprotocol Identifiable do
     @doc "Returns the id of the item."
@@ -45,8 +50,30 @@ defmodule CosmosDbEx.Client.Documents do
       when is_struct(container) and
              is_binary(id) and
              is_binary(partition_key) do
+    partition_keys_json = Jason.encode!([partition_key])
+    headers = [{"x-ms-documentdb-partitionkey", partition_keys_json}]
+
     "dbs/#{container.database}/colls/#{container.container_name}/docs/#{id}"
-    |> send_get_request(partition_key)
+    |> send_get_request(headers)
+    |> parse_response()
+  end
+
+  @spec get_items(Container.t(), integer()) :: {:ok, Response.t()}
+  def get_items(container, max_item_count \\ 100, continuation_token \\ nil) do
+    headers =
+      case continuation_token == nil do
+        true ->
+          [{"x-ms-max-item-count", "#{max_item_count}"}]
+
+        false ->
+          [
+            {"x-ms-max-item-count", "#{max_item_count}"},
+            {"x-ms-continuation", Jason.encode!(continuation_token)}
+          ]
+      end
+
+    "dbs/#{container.database}/colls/#{container.container_name}/docs"
+    |> send_get_request(headers)
     |> parse_response()
   end
 
@@ -56,17 +83,22 @@ defmodule CosmosDbEx.Client.Documents do
   Note that the item being placed in CosmosDb must implement the Identifiable protocol.
   """
   def create_item(container, item, partition_key) do
+    partition_keys_json = Jason.encode!([partition_key])
+    headers = [{"x-ms-documentdb-partitionkey", partition_keys_json}]
+
     "dbs/#{container.database}/colls/#{container.container_name}/docs"
-    |> send_post_request(item, partition_key)
+    |> send_post_request(item, headers)
     |> parse_response()
   end
 
-  defp send_get_request(path, partition_keys) do
-    key = Config.get_cosmos_db_key()
-    key_type = "master"
-    date = get_datetime_now()
+  defp send_get_request(path, headers \\ []) do
+    headers =
+      case length(headers) == 0 do
+        true -> build_common_headers("get", path)
+        false -> Enum.concat(build_common_headers("get", path), headers)
+      end
 
-    headers = build_common_headers("get", path, partition_keys, date, key, key_type)
+    Logger.debug("Request Headers: #{inspect(headers)}")
 
     url = build_request_url(path)
 
@@ -75,20 +107,12 @@ defmodule CosmosDbEx.Client.Documents do
     |> Finch.request(CosmosDbEx.Application)
   end
 
-  defp send_post_request(path, item, partition_keys) do
-    key = Config.get_cosmos_db_key()
-    key_type = "master"
-    date = get_datetime_now()
-
+  defp send_post_request(path, item, headers \\ []) do
     headers =
-      build_common_headers(
-        "post",
-        path,
-        partition_keys,
-        date,
-        key,
-        key_type
-      )
+      case length(headers) == 0 do
+        true -> build_common_headers("post", path)
+        false -> Enum.concat(build_common_headers("post", path), headers)
+      end
 
     url = build_request_url(path)
 
@@ -103,24 +127,19 @@ defmodule CosmosDbEx.Client.Documents do
     "https://#{host_url}/#{path}"
   end
 
-  defp build_common_headers(
-         http_verb,
-         path,
-         partition_keys,
-         date,
-         key,
-         key_type
-       ) do
-    auth_signature = Auth.generate_auth_signature(http_verb, path, date, key, key_type)
+  defp build_common_headers(http_verb, path) do
+    key = Config.get_cosmos_db_key()
+    key_type = "master"
+    date = get_datetime_now()
 
-    partition_keys_json = Jason.encode!([partition_keys])
+    auth_signature = Auth.generate_auth_signature(http_verb, path, date, key, key_type)
 
     [
       {"Authorization", auth_signature},
       {"Accept", "application/json"},
       {"x-ms-date", date},
       {"x-ms-version", "2018-12-31"},
-      {"x-ms-documentdb-partitionkey", partition_keys_json}
+      {"User-Agent", "CosmosDbEx.Client.Documents"}
     ]
   end
 
@@ -212,21 +231,47 @@ defmodule CosmosDbEx.Client.Documents do
        ),
        do: {:entity_too_large, build_client_response(headers, body)}
 
-  defp parse_response(%{error: error}), do: {:error, error}
-
   defp build_client_response(headers, body) do
-    request_charge = get_request_charge(headers)
-    request_duration = get_request_duration(headers)
-    Response.new(request_charge, request_duration, Jason.decode!(body))
+    Logger.debug("Body: #{inspect(body)}")
+
+    headers_map = flatten_headers(headers)
+
+    Jason.decode!(body)
+    |> build_response(headers_map)
   end
 
-  defp get_request_charge([{"x-ms-request-charge", request_charge} | _]), do: request_charge
-  defp get_request_charge([_head | tail]), do: get_request_charge(tail)
-  defp get_request_charge(_), do: nil
+  defp build_response(
+         %{"Documents" => documents, "_count" => count, "_rid" => rid},
+         headers
+       ) do
+    %Response{
+      body: %{"Documents" => documents},
+      properties: %{
+        request_charge: headers[@request_charge_header],
+        request_duration: headers[@request_duration_header],
+        continuation_token: decode_continuation_token(headers[@continuation_token_header])
+      },
+      count: count,
+      resource_id: rid
+    }
+  end
 
-  defp get_request_duration([{"x-ms-request-duration-ms", request_duration} | _]),
-    do: request_duration
+  defp build_response(body, headers) do
+    %Response{
+      body: body,
+      properties: %{
+        request_charge: headers[@request_charge_header],
+        request_duration: headers[@request_duration_header]
+      },
+      count: 1
+    }
+  end
 
-  defp get_request_duration([_head | tail]), do: get_request_duration(tail)
-  defp get_request_duration(_), do: nil
+  defp flatten_headers(headers) do
+    headers
+    |> Enum.reduce(%{}, fn {key, value}, acc -> Map.put_new(acc, key, value) end)
+  end
+
+  defp decode_continuation_token(nil), do: nil
+  defp decode_continuation_token(token), do: Jason.decode!(token)
 end

@@ -3,7 +3,8 @@ defmodule CosmosDbEx.Client do
 
 
   """
-  alias CosmosDbEx.Client.Documents
+  alias CosmosDbEx.Response
+  alias CosmosDbEx.Client.{Container, Documents}
 
   @doc """
   Retrieve a document by it's document id and partition key.
@@ -28,9 +29,24 @@ defmodule CosmosDbEx.Client do
     }}
 
   """
-  def get_document(container, id, partition_key) do
+  def get_document(container, id, partition_key) when is_struct(container) do
     container
     |> Documents.get_item(id, partition_key)
+  end
+
+  def get_documents(container, continuation_token)
+      when is_struct(container) and
+             is_map(continuation_token) do
+    container
+    |> get_documents(100, continuation_token)
+  end
+
+  def get_documents(container, max_item_count \\ 100, continuation_token \\ nil)
+      when is_struct(container) and
+             is_integer(max_item_count) and
+             max_item_count > 0 do
+    container
+    |> Documents.get_items(max_item_count, continuation_token)
   end
 
   @doc """
