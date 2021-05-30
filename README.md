@@ -5,6 +5,10 @@ This (unofficial) client library enables client applications targeting Elixir to
 
 Most if not all of this libraries functionality is accessible from the `CosmosDbEx` module.
 
+## Notice
+
+This library is definitely in alpha stage.  I'm looking for any and all feedback: good, bad, or ugly.
+
 ## Configuration
 
 There are specific configuration values that must be present in order to communicate with your
