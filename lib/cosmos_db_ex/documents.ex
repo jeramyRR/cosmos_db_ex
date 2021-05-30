@@ -1,4 +1,4 @@
-defmodule CosmosDbEx.Client.Documents do
+defmodule CosmosDbEx.Documents do
   @moduledoc false
 
   ###
@@ -18,8 +18,7 @@ defmodule CosmosDbEx.Client.Documents do
   require Logger
 
   use Timex
-  alias CosmosDbEx.Response
-  alias CosmosDbEx.Client.{Auth, Config, Container}
+  alias CosmosDbEx.{Auth, Config, Container, Response}
 
   @accept_header "Accept"
   @authorization_header "Authorization"
@@ -121,7 +120,7 @@ defmodule CosmosDbEx.Client.Documents do
     |> parse_response()
   end
 
-  defp send_get_request(path, headers \\ []) do
+  defp send_get_request(path, headers) do
     headers =
       case length(headers) == 0 do
         true -> build_common_headers("get", path)
@@ -135,7 +134,7 @@ defmodule CosmosDbEx.Client.Documents do
     |> Finch.request(CosmosDbEx.Application)
   end
 
-  defp send_post_request(path, item, headers \\ []) do
+  defp send_post_request(path, item, headers) do
     headers =
       case length(headers) == 0 do
         true -> build_common_headers("post", path)

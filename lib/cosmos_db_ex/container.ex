@@ -1,7 +1,6 @@
-defmodule CosmosDbEx.Client.Container do
+defmodule CosmosDbEx.Container do
   @moduledoc """
-  This Container module provides functions for working with Cosmos DB containers.  These functions
-  map to the same or similar operations found in the Cosmos Db rest api documentation. See: []()
+  A simple struct used to instruct the library which database and container to communicate with.
   """
 
   @enforce_keys [:database, :container_name]

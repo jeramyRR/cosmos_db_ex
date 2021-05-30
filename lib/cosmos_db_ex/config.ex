@@ -1,9 +1,5 @@
-defmodule CosmosDbEx.Client.Config do
-  @moduledoc """
-  Methods for retrieving configuration values needed to talk with CosmosDb.
-
-
-  """
+defmodule CosmosDbEx.Config do
+  @moduledoc false
 
   require Logger
 

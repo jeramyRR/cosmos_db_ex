@@ -1,4 +1,4 @@
-defmodule CosmosDbEx.Client.Auth do
+defmodule CosmosDbEx.Auth do
   @moduledoc """
   Provides all necessary functionality to peform Cosmos Db Rest API calls with authorization.
 
@@ -10,7 +10,7 @@ defmodule CosmosDbEx.Client.Auth do
   Generates a hashed token signature for a master token that will be used for authorization of each
   request to the Cosmos Db api.
 
-  # Params
+  ## Params
 
    - http_verb: A HTTP verb, such as GET, POST, PUT.
 
@@ -35,12 +35,12 @@ defmodule CosmosDbEx.Client.Auth do
    current supported version is 1.0.
 
 
-  # Remarks
+  ## Remarks
 
   I'm not really certain how much compute it takes to decode a Base64 encoded string, but there are
   actually Elixir libraries out there that drop down to 'C' just to make it faster.  If it turns out
   that constantly decoding the key hampers performance then we can see about possibly storing the
-  decoded key in ETS to reduce compute a little bit.
+  # decoded key in ETS to reduce compute a little bit.
   """
   def generate_auth_signature(
         http_verb,
