@@ -115,8 +115,6 @@ defmodule CosmosDbEx.Documents do
     partition_keys_json = Jason.encode!([partition_key])
     headers = [{@partition_key_header, partition_keys_json}]
 
-    Logger.debug("Headers: #{inspect(headers)}")
-
     "dbs/#{container.database}/colls/#{container.container_name}/docs"
     |> send_post_request(item, headers)
     |> parse_response()
