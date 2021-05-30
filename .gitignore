@@ -29,5 +29,11 @@ cosmos_db_ex-*.tar
 /priv/plts/**
 !/priv/plts/README.md
 
+# Ignore local_dev folder which may contain secrets that shouldn't
+# be pushed to github.  Don't ignore the README though so that this
+# folder gets created in the repo.
+/local_dev/**
+!/local_dev/README.md
+
 # Temporary files for e.g. tests
 /tmp
