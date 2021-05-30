@@ -1,9 +1,7 @@
 defmodule CosmosDbEx.Client do
   @moduledoc """
-
-
   """
-  alias CosmosDbEx.Response
+
   alias CosmosDbEx.Client.{Container, Documents}
 
   @doc """
@@ -47,6 +45,49 @@ defmodule CosmosDbEx.Client do
              max_item_count > 0 do
     container
     |> Documents.get_items(max_item_count, continuation_token)
+  end
+
+  @doc """
+  Sends a query to Cosmos Db.
+
+  # Params
+  query - The query contains the SQL query text.
+  params - A List of key/value pairs that correspond to values in the query.
+
+  # Example:
+    iex> query_text = "SELECT * FROM ItemsContainer c WHERE c.id = @id and c.name = @name"
+    iex> params = [{"id", "1234"}, {"name", "testItem"}]
+    iex> CosmosDbEx.Client.query(query_text, params)
+    {:ok,
+     %CosmosDbEx.Response{
+       body: %{
+         "Documents" => [
+           %{
+             "_attachments" => "attachments/",
+             "_etag" => "\"8203015f-0000-0200-0000-60a1c47e0000\"",
+             "_rid" => "AAarArAAAAAFAAAAAAAAAA==",
+             "_ts" => 1621214334,
+             "id" => "ACME-HD-WOLF01234",
+             "location" => "Bottom of a cliff",
+             "name" => "ACME hair dryer"
+           }
+         ]
+       },
+       count: 1,
+       properties: %{
+         continuation_token: nil,
+         request_charge: "2.83",
+         request_duration: "0.734"
+       },
+       resource_id: "AA8rAA2AN48="
+     }}
+  """
+  @spec query(Container.t(), String.t(), list()) :: CosmosDbEx.Response.t()
+  def query(container, query_text, params)
+      when is_struct(container) and
+             is_binary(query_text) and
+             is_list(params) do
+    Documents.query(container, query_text, params)
   end
 
   @doc """

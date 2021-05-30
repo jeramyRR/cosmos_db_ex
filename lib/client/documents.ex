@@ -1,28 +1,38 @@
 defmodule CosmosDbEx.Client.Documents do
-  @moduledoc """
-  This Container module provides functions for working with Cosmos DB containers.  These functions
-  map to the same or similar operations found in the Cosmos Db rest api documentation.
-  See: [Documents](https://docs.microsoft.com/en-us/rest/api/cosmos-db/documents)
+  @moduledoc false
 
-
-
-  TODO(jeramyRR): Implement retries for when a request has been throttled.
-    How will we know when a request has been throttled?  The response header, coming from Cosmos,
-    will contain an entry called "x-ms-retry-after-ms".  This header indicates that the request was
-    indeed throttled, and lets us know when we should try the request again.
-    See [Common Azure Cosmos DB REST response headers](https://docs.microsoft.com/en-us/rest/api/cosmos-db/common-cosmosdb-rest-response-headers)
-    for a list of common response headers.
-
-  """
+  ###
+  # This Container module provides functions for working with Cosmos DB containers.  These functions
+  # map to the same or similar operations found in the Cosmos Db rest api documentation.
+  # See: [Documents](https://docs.microsoft.com/en-us/rest/api/cosmos-db/documents)
+  #
+  #
+  #
+  # TODO(jeramyRR): Implement retries for when a request has been throttled.
+  # How will we know when a request has been throttled?  The response header, coming from Cosmos,
+  # will contain an entry called "x-ms-retry-after-ms".  This header indicates that the request was
+  # indeed throttled, and lets us know when we should try the request again.
+  # See [Common Azure Cosmos DB REST response headers](https://docs.microsoft.com/en-us/rest/api/cosmos-db/common-cosmosdb-rest-response-headers)
+  # for a list of common response headers.
+  ###
   require Logger
 
   use Timex
   alias CosmosDbEx.Response
   alias CosmosDbEx.Client.{Auth, Config, Container}
 
+  @accept_header "Accept"
+  @authorization_header "Authorization"
+  @content_type_header "Content-Type"
+  @continuation_token_header "x-ms-continuation"
+  @date_header "x-ms-date"
+  @is_query_header "x-ms-documentdb-isquery"
+  @max_item_count_headeer "x-ms-max-item-count"
+  @partition_key_header "x-ms-documentdb-partitionkey"
   @request_charge_header "x-ms-request-charge"
   @request_duration_header "x-ms-request-duration-ms"
-  @continuation_token_header "x-ms-continuation"
+  @user_agent_header "User-Agent"
+  @version_header "x-ms-version"
 
   defprotocol Identifiable do
     @doc "Returns the id of the item."
@@ -51,7 +61,7 @@ defmodule CosmosDbEx.Client.Documents do
              is_binary(id) and
              is_binary(partition_key) do
     partition_keys_json = Jason.encode!([partition_key])
-    headers = [{"x-ms-documentdb-partitionkey", partition_keys_json}]
+    headers = [{@partition_key_header, partition_keys_json}]
 
     "dbs/#{container.database}/colls/#{container.container_name}/docs/#{id}"
     |> send_get_request(headers)
@@ -63,17 +73,37 @@ defmodule CosmosDbEx.Client.Documents do
     headers =
       case continuation_token == nil do
         true ->
-          [{"x-ms-max-item-count", "#{max_item_count}"}]
+          [{@max_item_count_headeer, "#{max_item_count}"}]
 
         false ->
           [
-            {"x-ms-max-item-count", "#{max_item_count}"},
-            {"x-ms-continuation", Jason.encode!(continuation_token)}
+            {@max_item_count_headeer, "#{max_item_count}"},
+            {@continuation_token_header, Jason.encode!(continuation_token)}
           ]
       end
 
     "dbs/#{container.database}/colls/#{container.container_name}/docs"
     |> send_get_request(headers)
+    |> parse_response()
+  end
+
+  def query(container, query_text, params) do
+    structured_params =
+      params
+      |> Enum.reduce([], fn {key, value}, acc -> [%{name: "@#{key}", value: value} | acc] end)
+
+    body = %{
+      query: query_text,
+      parameters: structured_params
+    }
+
+    headers = [
+      {@is_query_header, "true"},
+      {@content_type_header, "application/query+json"}
+    ]
+
+    "dbs/#{container.database}/colls/#{container.container_name}/docs"
+    |> send_post_request(body, headers)
     |> parse_response()
   end
 
@@ -84,7 +114,7 @@ defmodule CosmosDbEx.Client.Documents do
   """
   def create_item(container, item, partition_key) do
     partition_keys_json = Jason.encode!([partition_key])
-    headers = [{"x-ms-documentdb-partitionkey", partition_keys_json}]
+    headers = [{@partition_key_header, partition_keys_json}]
 
     "dbs/#{container.database}/colls/#{container.container_name}/docs"
     |> send_post_request(item, headers)
@@ -97,8 +127,6 @@ defmodule CosmosDbEx.Client.Documents do
         true -> build_common_headers("get", path)
         false -> Enum.concat(build_common_headers("get", path), headers)
       end
-
-    Logger.debug("Request Headers: #{inspect(headers)}")
 
     url = build_request_url(path)
 
@@ -116,8 +144,10 @@ defmodule CosmosDbEx.Client.Documents do
 
     url = build_request_url(path)
 
+    body = Jason.encode!(item)
+
     :post
-    |> Finch.build(url, headers, Jason.encode!(item))
+    |> Finch.build(url, headers, body)
     |> Finch.request(CosmosDbEx.Application)
   end
 
@@ -135,11 +165,11 @@ defmodule CosmosDbEx.Client.Documents do
     auth_signature = Auth.generate_auth_signature(http_verb, path, date, key, key_type)
 
     [
-      {"Authorization", auth_signature},
-      {"Accept", "application/json"},
-      {"x-ms-date", date},
-      {"x-ms-version", "2018-12-31"},
-      {"User-Agent", "CosmosDbEx.Client.Documents"}
+      {@authorization_header, auth_signature},
+      {@accept_header, "application/json"},
+      {@date_header, date},
+      {@version_header, "2018-12-31"},
+      {@user_agent_header, "CosmosDbEx.Client.Documents"}
     ]
   end
 
