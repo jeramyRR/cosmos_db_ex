@@ -82,6 +82,9 @@ defmodule CosmosDbEx do
 
   ## Examples
 
+    Retrieve all documents from a container using the default max_items of 100 and no continuation
+    token.
+
       iex> CosmosDbEx.Container.new("database", "container") |> CosmosDbEx.get_documents()
       {:ok,
        %CosmosDbEx.Response{
@@ -116,6 +119,8 @@ defmodule CosmosDbEx do
         resource_id: "Hj8rAI2HN48="
        }
       }
+
+    Retrieve the first two documents from a container.
 
       iex> container = CosmosDbEx.Container.new("database", "container")
       iex> {:ok, response} = container |> CosmosDbEx.get_documents(2)
@@ -155,7 +160,13 @@ defmodule CosmosDbEx do
           resource_id: "Hj8rAI2HN48="
          }
         }
-        iex> {:ok, response} = container |> CosmosDbEx.get_documents(response.properties.continuation_token)
+
+
+    A continuation of the example above.  Using the continuation token retrieves the next page of
+    documents.  This can also be combined with `max_item_count` to restrict how many items are returned
+    during continuation as well.
+
+      iex> {:ok, response} = container |> CosmosDbEx.get_documents(response.properties.continuation_token)
         {:ok,
           %CosmosDbEx.Response{
             body: %{

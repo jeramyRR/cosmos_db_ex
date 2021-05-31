@@ -92,7 +92,7 @@ defmodule CosmosDbEx.Auth do
     decoded_key = key |> Base.decode64!()
 
     :sha256
-    |> :crypto.hmac(decoded_key, payload)
+    |> hmac_fun(decoded_key, payload)
     |> Base.encode64()
   end
 
@@ -100,5 +100,11 @@ defmodule CosmosDbEx.Auth do
     part
     |> String.trim()
     |> String.downcase()
+  end
+
+  if Code.ensure_loaded?(:crypto) and function_exported?(:crypto, :mac, 4) do
+    defp hmac_fun(digest, key, data), do: :crypto.mac(:hmac, digest, key, data)
+  else
+    defp hmac_fun(digest, key, data), do: :crypto.hmac(digest, key, data)
   end
 end
