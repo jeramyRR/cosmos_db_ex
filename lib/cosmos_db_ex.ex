@@ -1,5 +1,6 @@
 defmodule CosmosDbEx do
   @moduledoc """
+  Contains the basic functions needed to communicate with CosmosDb.
   """
   alias CosmosDbEx.{Container, Documents}
 
