@@ -40,7 +40,8 @@ defmodule CosmosDbEx.Auth do
   I'm not really certain how much compute it takes to decode a Base64 encoded string, but there are
   actually Elixir libraries out there that drop down to 'C' just to make it faster.  If it turns out
   that constantly decoding the key hampers performance then we can see about possibly storing the
-  # decoded key in ETS to reduce compute a little bit.
+  decoded key in ETS to reduce compute a little bit.
+
   """
   def generate_auth_signature(
         http_verb,
