@@ -210,8 +210,6 @@ defmodule CosmosDbEx do
   @doc """
   Sends a query to Cosmos Db.
 
-
-
   ## Parameters
 
    - query: The query contains the SQL query text.
