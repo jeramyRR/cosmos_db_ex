@@ -1,14 +1,19 @@
 defmodule CosmosDbEx.MixProject do
   use Mix.Project
 
+  @source_link "https://github.com/jeramyRR/cosmos_db_ex"
+
   def project do
     [
       app: :cosmos_db_ex,
       version: "0.1.0",
       elixir: "~> 1.11",
+      description: description(),
+      package: package(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      source_url: @source_link
     ]
   end
 
@@ -37,6 +42,19 @@ defmodule CosmosDbEx.MixProject do
     [
       plt_core_path: "priv/plts",
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
+    ]
+  end
+
+  defp description do
+    "Azure Cosmos Db driver using the SQL REST API."
+  end
+
+  defp package do
+    [
+      maintainers: ["Jeramy Singleton"],
+      files: ~w(lib .formatter.exs mix.exs README.md),
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_link}
     ]
   end
 end
