@@ -9,27 +9,27 @@ defmodule CosmosDbEx do
 
   ## Examples
 
-    iex> container = CosmosDbEx.Container.new("database", "container")
-    iex> item_id = "00000000-0000-0000-0000-000000000000"
-    iex> partition_key = item_id
-    iex> CosmosDbEx.get_document(container, item_id, partition_key)
-    {:ok,
-     %CosmosDbEx.Response{
-      body: %{
-        "_attachments" => "attachments/",
-        "_etag" => ""00000000-0000-0000-0000-000000000000"",
-        "_rid" => "AAAAAAAAAAAAAAAAA==",
-        "_self" => "dbs/AAAAAA==/colls/AAAAAAAAAAA=/docs/AAAAAAAAAAAAAAAAAAAAAA==/",
-        "_ts" => 1620141668,
-        "id" => "00000000-0000-0000-0000-000000000000",
-        "name" => "Test item"
-      },
-      properties: %{
-        request_charge: "1",
-        request_duration: "0.585"
+      iex> container = CosmosDbEx.Container.new("database", "container")
+      iex> item_id = "00000000-0000-0000-0000-000000000000"
+      iex> partition_key = item_id
+      iex> CosmosDbEx.get_document(container, item_id, partition_key)
+      {:ok,
+       %CosmosDbEx.Response{
+        body: %{
+          "_attachments" => "attachments/",
+          "_etag" => ""00000000-0000-0000-0000-000000000000"",
+          "_rid" => "AAAAAAAAAAAAAAAAA==",
+          "_self" => "dbs/AAAAAA==/colls/AAAAAAAAAAA=/docs/AAAAAAAAAAAAAAAAAAAAAA==/",
+          "_ts" => 1620141668,
+          "id" => "00000000-0000-0000-0000-000000000000",
+          "name" => "Test item"
+        },
+        properties: %{
+          request_charge: "1",
+          request_duration: "0.585"
+        }
+       }
       }
-     }
-    }
 
   """
   @spec get_document(Container.t(), String.t(), String.t()) ::
