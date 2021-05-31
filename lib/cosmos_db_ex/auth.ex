@@ -24,7 +24,7 @@ defmodule CosmosDbEx.Auth do
    that this must also be the date passed in the `x-ms-date` header.
    Example: "Tue, 01 Nov 1994 08:12:31 GMT".
 
-   - key: This is the **Enecoded** key for your Cosmos Db database. It is usually either the primary
+   - key: This is the **Encoded** key for your Cosmos Db database. It is usually either the primary
    or secondary key that can be found in the `Keys` setting in your databases blade.  *Note: This
    key should never be saved and controlled in any repo.  The key should be retrieved from something
    like Azure Key Vault, or an environment variable.*

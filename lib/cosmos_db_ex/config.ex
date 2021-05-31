@@ -9,7 +9,7 @@ defmodule CosmosDbEx.Config do
         key
 
       _ ->
-        Logger.info("Attempting to retrieve Cosmos DB key from the environment.")
+        Logger.debug("Attempting to retrieve Cosmos DB key from the environment.")
 
         case System.get_env("COSMOS_DB_KEY") do
           key when not is_nil(key) ->
@@ -27,7 +27,7 @@ defmodule CosmosDbEx.Config do
         host_url
 
       _ ->
-        Logger.info("Attempting to retrieve Cosmos DB key from the environment.")
+        Logger.debug("Attempting to retrieve Cosmos DB key from the environment.")
 
         case System.get_env("COSMOS_DB_HOST_URL") do
           host_url when not is_nil(host_url) ->
