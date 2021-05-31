@@ -72,7 +72,15 @@ available:
 
   *`create_document` - Create a document, in a container, using a Map and partition key.
 
-  ## Road Map (TODOs):
+### Containers
+
+Everything requires a container (could also be called "collection").  A container is nothing more
+than a struct with the database name and container name.  This is something that could probably be
+done better, and may change in a future version.
+
+Please see the docs at hex.pm for examples: [`cosmos_db_ex`](http://hexdocs.pm/cosmos_db_ex)
+
+## Road Map (TODOs):
 
   As this is an early version, there is a boat load of work that still needs to be done.  The next
   versions will concentrate on the following:
@@ -86,11 +94,3 @@ available:
   * Add ability to set consistency levels.
 
   * Add ability to use session tokens.
-
-### Containers
-
-Everything requires a container (could also be called "collection").  A container is nothing more
-than a struct with the database name and container name.  This is something that could probably be
-done better, and may change in a future version.
-
-Please see the docs at hex.pm for examples: [`cosmos_db_ex`](http://hexdocs.pm/cosmos_db_ex)
