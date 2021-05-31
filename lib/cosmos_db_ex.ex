@@ -28,7 +28,7 @@ defmodule CosmosDbEx do
     }}
 
   """
-  @spec get_document(Container.t(), integer(), String.t()) ::
+  @spec get_document(Container.t(), String.t(), String.t()) ::
           {:ok
            | :bad_request
            | :conflict
