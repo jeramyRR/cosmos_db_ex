@@ -6,14 +6,6 @@ defmodule CosmosDbEx.Documents do
   # map to the same or similar operations found in the Cosmos Db rest api documentation.
   # See: [Documents](https://docs.microsoft.com/en-us/rest/api/cosmos-db/documents)
   #
-  #
-  #
-  # TODO(jeramyRR): Implement retries for when a request has been throttled.
-  # How will we know when a request has been throttled?  The response header, coming from Cosmos,
-  # will contain an entry called "x-ms-retry-after-ms".  This header indicates that the request was
-  # indeed throttled, and lets us know when we should try the request again.
-  # See [Common Azure Cosmos DB REST response headers](https://docs.microsoft.com/en-us/rest/api/cosmos-db/common-cosmosdb-rest-response-headers)
-  # for a list of common response headers.
   ###
   require Logger
 
@@ -122,7 +114,7 @@ defmodule CosmosDbEx.Documents do
 
   defp send_get_request(path, headers) do
     headers =
-      case length(headers) == 0 do
+      case Enum.empty?(headers) do
         true -> build_common_headers("get", path)
         false -> Enum.concat(build_common_headers("get", path), headers)
       end
@@ -136,7 +128,7 @@ defmodule CosmosDbEx.Documents do
 
   defp send_post_request(path, item, headers) do
     headers =
-      case length(headers) == 0 do
+      case Enum.empty?(headers) do
         true -> build_common_headers("post", path)
         false -> Enum.concat(build_common_headers("post", path), headers)
       end
