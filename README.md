@@ -7,7 +7,11 @@ Most if not all of this libraries functionality is accessible from the `CosmosDb
 
 ## Notice
 
-This library is definitely in alpha stage.  I'm looking for any and all feedback: good, bad, or ugly.
+This library is definitely in alpha stage.  There are no optimizations, and there are probably a
+whole lot of areas that can be improved or changed completely.
+
+I'm looking for any and all feedback: good, bad, or ugly.
+
 
 ## Configuration
 
@@ -82,3 +86,11 @@ available:
   * Add ability to set consistency levels.
 
   * Add ability to use session tokens.
+
+### Containers
+
+Everything requires a container (could also be called "collection").  A container is nothing more
+than a struct with the database name and container name.  This is something that could probably be
+done better, and may change in a future version.
+
+Please see the docs at hex.pm for examples: [`cosmos_db_ex`](http://hexdocs.pm/cosmos_db_ex)
