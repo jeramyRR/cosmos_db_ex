@@ -210,15 +210,23 @@ defmodule CosmosDbEx do
   @doc """
   Sends a query to Cosmos Db.
 
+
+
   ## Parameters
 
    - query: The query contains the SQL query text.
    - params: A List of key/value pairs that correspond to values in the query.
 
+
+  ### Query String and Params
+
+  Notice the query string in the example below.  For each value that will be substituted by an entry
+  in the params list, the key in the query string must be annotated with an '@' symbol.
+
   ## Example:
 
       iex> query_text = "SELECT * FROM ItemsContainer c WHERE c.id = @id and c.name = @name"
-      iex> params = [{"id", "1234"}, {"name", "testItem"}]
+      iex> params = [{"id", "ACME-HD-WOLF01234"}, {"name", "ACME hair dryer"}]
       iex> CosmosDbEx.query(query_text, params)
       {:ok,
        %CosmosDbEx.Response{
