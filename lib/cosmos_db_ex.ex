@@ -7,13 +7,14 @@ defmodule CosmosDbEx do
   @doc """
   Retrieve a document by it's document id and partition key.
 
-  # Examples
+  ## Examples
 
     iex> container = CosmosDbEx.Container.new("database", "container")
     iex> item_id = "00000000-0000-0000-0000-000000000000"
     iex> partition_key = item_id
     iex> CosmosDbEx.get_document(container, item_id, partition_key)
-    %CosmosDbEx.Response{
+    {:ok,
+     %CosmosDbEx.Response{
       body: %{
         "_attachments" => "attachments/",
         "_etag" => ""00000000-0000-0000-0000-000000000000"",
@@ -23,9 +24,12 @@ defmodule CosmosDbEx do
         "id" => "00000000-0000-0000-0000-000000000000",
         "name" => "Test item"
       },
-      request_charge: "1",
-      request_duration: "0.585"
-    }}
+      properties: %{
+        request_charge: "1",
+        request_duration: "0.585"
+      }
+     }
+    }
 
   """
   @spec get_document(Container.t(), String.t(), String.t()) ::
@@ -50,47 +54,11 @@ defmodule CosmosDbEx do
   in the properties (has the key `continuation_token`). You continue retrieving all the documents
   by using the Continuation Token in your next call to `get_documents`.  See the second example
 
-  # Examples
+  ## Examples
 
-    iex> CosmosDbEx.Container.new("database", "container") |> CosmosDbEx.get_documents()
-    {:ok,
-    %CosmosDbEx.Response{
-      body: %{
-        "Documents" => [
-          %{
-            "_attachments" => "attachments/",
-            "_etag" => "\"0200c45b-0000-0200-0000-609166640000\"",
-            "_rid" => "Hj8rAI2HN48BAAAAAAAAAA==",
-            "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48BAAAAAAAAAA==/",
-            "_ts" => 1620141668,
-            "id" => "d22d663e-6fa1-49af-98f8-df397f266999",
-            "name" => "Test item here"
-          },
-          %{
-            "_attachments" => "attachments/",
-            "_etag" => "\"02003980-0000-0200-0000-60916f6d0000\"",
-            "_rid" => "Hj8rAI2HN48CAAAAAAAAAA==",
-            "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48CAAAAAAAAAA==/",
-            "_ts" => 1620143981,
-            "id" => "bef3c1f3-3f66-49a3-ba77-6e8d0e641664",
-            "name" => "This is a test"
-          }
-        ]
-      },
-      count: 2,
-      properties: %{
-        continuation_token: nil,
-        request_charge: "1",
-        request_duration: "0.66"
-      },
-      resource_id: "Hj8rAI2HN48="
-      }
-    }
-
-    iex> container = CosmosDbEx.Container.new("database", "container")
-    iex> {:ok, response} = container |> CosmosDbEx.get_documents(2)
-    {:ok,
-      %CosmosDbEx.Response{
+      iex> CosmosDbEx.Container.new("database", "container") |> CosmosDbEx.get_documents()
+      {:ok,
+       %CosmosDbEx.Response{
         body: %{
           "Documents" => [
             %{
@@ -115,59 +83,97 @@ defmodule CosmosDbEx do
         },
         count: 2,
         properties: %{
-          continuation_token: %{
-            "range" => %{"max" => "FF", "min" => ""},
-            "token" => "Hj8rAI2HN48CAAAAAAAAAA=="
-          },
+          continuation_token: nil,
           request_charge: "1",
-          request_duration: "0.429"
+          request_duration: "0.66"
         },
         resource_id: "Hj8rAI2HN48="
-      }}
-      iex> {:ok, response} = container |> CosmosDbEx.get_documents(response.properties.continuation_token)
+       }
+      }
+
+      iex> container = CosmosDbEx.Container.new("database", "container")
+      iex> {:ok, response} = container |> CosmosDbEx.get_documents(2)
       {:ok,
         %CosmosDbEx.Response{
           body: %{
             "Documents" => [
               %{
                 "_attachments" => "attachments/",
-                "_etag" => "\"82035043-0000-0200-0000-60a1bac30000\"",
-                "_rid" => "Hj8rAI2HN48DAAAAAAAAAA==",
-                "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48DAAAAAAAAAA==/",
-                "_ts" => 1621211843,
-                "id" => "2323490-23-23-3923493293",
-                "name" => "This is a test of the protocol"
+                "_etag" => "\"0200c45b-0000-0200-0000-609166640000\"",
+                "_rid" => "Hj8rAI2HN48BAAAAAAAAAA==",
+                "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48BAAAAAAAAAA==/",
+                "_ts" => 1620141668,
+                "id" => "d22d663e-6fa1-49af-98f8-df397f266999",
+                "name" => "Test item here"
               },
               %{
                 "_attachments" => "attachments/",
-                "_etag" => "\"8203015f-0000-0200-0000-60a1c47e0000\"",
-                "_rid" => "Hj8rAI2HN48FAAAAAAAAAA==",
-                "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48FAAAAAAAAAA==/",
-                "_ts" => 1621214334,
-                "id" => "ACME-HD-WOLF01234",
-                "location" => "Bottom of a cliff",
-                "name" => "ACME hair dryer"
-              },
-              %{
-                "_attachments" => "attachments/",
-                "_etag" => "\"5d00e34c-0000-0200-0000-60b41c140000\"",
-                "_rid" => "Hj8rAI2HN48GAAAAAAAAAA==",
-                "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48GAAAAAAAAAA==/",
-                "_ts" => 1622416404,
-                "id" => "TestDoc-2-1-3-2",
-                "location" => "Under da hill",
-                "name" => "Just another test document"
+                "_etag" => "\"02003980-0000-0200-0000-60916f6d0000\"",
+                "_rid" => "Hj8rAI2HN48CAAAAAAAAAA==",
+                "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48CAAAAAAAAAA==/",
+                "_ts" => 1620143981,
+                "id" => "bef3c1f3-3f66-49a3-ba77-6e8d0e641664",
+                "name" => "This is a test"
               }
             ]
           },
-          count: 3,
+          count: 2,
           properties: %{
-            continuation_token: nil,
+            continuation_token: %{
+              "range" => %{"max" => "FF", "min" => ""},
+              "token" => "Hj8rAI2HN48CAAAAAAAAAA=="
+            },
             request_charge: "1",
-            request_duration: "0.596"
+            request_duration: "0.429"
           },
           resource_id: "Hj8rAI2HN48="
-        }}
+         }
+        }
+        iex> {:ok, response} = container |> CosmosDbEx.get_documents(response.properties.continuation_token)
+        {:ok,
+          %CosmosDbEx.Response{
+            body: %{
+              "Documents" => [
+                %{
+                  "_attachments" => "attachments/",
+                  "_etag" => "\"82035043-0000-0200-0000-60a1bac30000\"",
+                  "_rid" => "Hj8rAI2HN48DAAAAAAAAAA==",
+                  "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48DAAAAAAAAAA==/",
+                  "_ts" => 1621211843,
+                  "id" => "2323490-23-23-3923493293",
+                  "name" => "This is a test of the protocol"
+                },
+                %{
+                  "_attachments" => "attachments/",
+                  "_etag" => "\"8203015f-0000-0200-0000-60a1c47e0000\"",
+                  "_rid" => "Hj8rAI2HN48FAAAAAAAAAA==",
+                  "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48FAAAAAAAAAA==/",
+                  "_ts" => 1621214334,
+                  "id" => "ACME-HD-WOLF01234",
+                  "location" => "Bottom of a cliff",
+                  "name" => "ACME hair dryer"
+                },
+                %{
+                  "_attachments" => "attachments/",
+                  "_etag" => "\"5d00e34c-0000-0200-0000-60b41c140000\"",
+                  "_rid" => "Hj8rAI2HN48GAAAAAAAAAA==",
+                  "_self" => "dbs/Hj8rAA==/colls/Hj8rAI2HN48=/docs/Hj8rAI2HN48GAAAAAAAAAA==/",
+                  "_ts" => 1622416404,
+                  "id" => "TestDoc-2-1-3-2",
+                  "location" => "Under da hill",
+                  "name" => "Just another test document"
+                }
+              ]
+            },
+            count: 3,
+            properties: %{
+              continuation_token: nil,
+              request_charge: "1",
+              request_duration: "0.596"
+            },
+            resource_id: "Hj8rAI2HN48="
+          }
+        }
 
   """
   @spec get_documents(Container.t(), map()) ::
@@ -211,32 +217,34 @@ defmodule CosmosDbEx do
 
   ## Example:
 
-    iex> query_text = "SELECT * FROM ItemsContainer c WHERE c.id = @id and c.name = @name"
-    iex> params = [{"id", "1234"}, {"name", "testItem"}]
-    iex> CosmosDbEx.query(query_text, params)
-    {:ok,
-     %CosmosDbEx.Response{
-       body: %{
-         "Documents" => [
-           %{
-             "_attachments" => "attachments/",
-             "_etag" => "\"8203015f-0000-0200-0000-60a1c47e0000\"",
-             "_rid" => "AAarArAAAAAFAAAAAAAAAA==",
-             "_ts" => 1621214334,
-             "id" => "ACME-HD-WOLF01234",
-             "location" => "Bottom of a cliff",
-             "name" => "ACME hair dryer"
-           }
-         ]
-       },
-       count: 1,
-       properties: %{
-         continuation_token: nil,
-         request_charge: "2.83",
-         request_duration: "0.734"
-       },
-       resource_id: "AA8rAA2AN48="
-     }}
+      iex> query_text = "SELECT * FROM ItemsContainer c WHERE c.id = @id and c.name = @name"
+      iex> params = [{"id", "1234"}, {"name", "testItem"}]
+      iex> CosmosDbEx.query(query_text, params)
+      {:ok,
+       %CosmosDbEx.Response{
+         body: %{
+           "Documents" => [
+             %{
+               "_attachments" => "attachments/",
+               "_etag" => "\"8203015f-0000-0200-0000-60a1c47e0000\"",
+               "_rid" => "AAarArAAAAAFAAAAAAAAAA==",
+               "_ts" => 1621214334,
+               "id" => "ACME-HD-WOLF01234",
+               "location" => "Bottom of a cliff",
+               "name" => "ACME hair dryer"
+             }
+           ]
+         },
+         count: 1,
+         properties: %{
+           continuation_token: nil,
+           request_charge: "2.83",
+           request_duration: "0.734"
+         },
+         resource_id: "AA8rAA2AN48="
+       }
+      }
+
   """
   @spec query(Container.t(), String.t(), list()) ::
           {:ok
@@ -261,6 +269,12 @@ defmodule CosmosDbEx do
   function that must be implemented, called get_id().  You can return a string in any format to
   represent the id given to CosmosDb.
 
+  > NOTE:  You must implement the Jason.Encoder protocol for any struct that will be used as the
+  > document being created.  You can do this by adding the following to your struct definition:
+
+      @dervie {Jason.Encoder, only: [....]}
+      defstruct ...
+
   Every request will return a tuple containing the status of the request as well as any information
   Cosmos Db returned in the body of the response. The only exception is when our call to the Rest
   API fails for a non-CosmosDb related issue
@@ -278,28 +292,29 @@ defmodule CosmosDbEx do
   * `{:error, error}` - Any errors encountered by our http client that aren't related to CosmosDb.
 
 
-  # Examples
+  ## Examples
 
-    iex> item = %{ name: "ACME hair dryer", id: "ACME-HD-WOLF01234", location: "Bottom of a cliff"}
-    iex> container = CosmosDbEx.Container.new("database", "container")
-    iex> container |> CosmosDbEx.create_document(item, item.name)
-    {:ok,
-     %CosmosDbEx.Response{
-       body: %{
-         "_attachments" => "attachments/",
-         "_etag" => "00000000-0000-0000-0000-000000000000",
-         "_rid" => "AAAAAAAAAAAAAAAAA==",
-         "_self" => "dbs/AAAAAA==/colls/AAAAAAAAAAA=/docs/AAAAAAAAAAAAAAAAAAAAAA==/",
-         "_ts" => 1620141668,
-         "id" => "ACME-HD-WOLF01234",
-         "location" => "Bottom of a cliff",
-         "name" => "ACME hair dryer"
-       },
-       properties: %{
-        request_charge: "6.29",
-        request_duration: "5.328"
-       }
-     }}
+        iex> item = %{ name: "ACME hair dryer", id: "ACME-HD-WOLF01234", location: "Bottom of a cliff"}
+        iex> container = CosmosDbEx.Container.new("database", "container")
+        iex> container |> CosmosDbEx.create_document(item, item.name)
+        {:ok,
+         %CosmosDbEx.Response{
+           body: %{
+             "_attachments" => "attachments/",
+             "_etag" => "00000000-0000-0000-0000-000000000000",
+             "_rid" => "AAAAAAAAAAAAAAAAA==",
+             "_self" => "dbs/AAAAAA==/colls/AAAAAAAAAAA=/docs/AAAAAAAAAAAAAAAAAAAAAA==/",
+             "_ts" => 1620141668,
+             "id" => "ACME-HD-WOLF01234",
+             "location" => "Bottom of a cliff",
+             "name" => "ACME hair dryer"
+           },
+           properties: %{
+            request_charge: "6.29",
+            request_duration: "5.328"
+           }
+          }
+        }
 
   """
   @spec create_document(Container.t(), map(), String.t()) ::
