@@ -165,7 +165,7 @@ defmodule CosmosDbEx.Documents do
   end
 
   # Cosmos DB Rest API requires a the date to be in a specific format.
-  defp get_datetime_now() do
+  defp get_datetime_now do
     DateTime.utc_now()
     |> Timezone.convert("GMT")
     |> Timex.format!("%a, %d %b %Y %H:%M:%S GMT", :strftime)
