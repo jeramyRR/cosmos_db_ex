@@ -2,18 +2,18 @@ defmodule CosmosDbEx.Response do
   @moduledoc """
   Formatted response from CosmosDb.
 
-  # Request Charge
+  ## Request Charge
 
   This is the R/U (Request Unit) charge that the query cost to return the response from Cosmos Db.
   In other words, this was the cost of all the database operations that had to happen in order
   for CosmosDb to read or write to/from the database. For more information on Request Units please
   see [Request Units in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/request-units).
 
-  # Request Duration
+  ## Request Duration
 
   This is the time, in milliseconds, that it took CosmosDb to execute the query sent.
 
-  # Body
+  ## Body
 
   This is the body of the response sent from Cosmos Db.  It is expected that the body will be a map.
   Additional items gathered from the response headers will be placed in the properties field of the
@@ -37,7 +37,8 @@ defmodule CosmosDbEx.Response do
   Returns the request charge (Cosmos Db's Request Unit measurement) of the request. Returns nil if
   no request charge is found in the response.
   """
-  def get_request_charge(%__MODULE__{properties: %{request_charge: request_charge}}) do
+  @spec get_request_charge(t()) :: float()
+  def get_request_charge(%{properties: %{request_charge: request_charge}}) do
     {ru, _} = Float.parse(request_charge)
     ru
   end
@@ -48,7 +49,8 @@ defmodule CosmosDbEx.Response do
   Returns the request duration, in milliseconds, of the request. Returns nil if no request_duration
   is found.
   """
-  def get_request_duration(%__MODULE__{properties: %{request_duration: request_duration}}) do
+  @spec get_request_duration(t()) :: String.t()
+  def get_request_duration(%{properties: %{request_duration: request_duration}}) do
     request_duration
   end
 
@@ -59,16 +61,17 @@ defmodule CosmosDbEx.Response do
   retrieve the next page of results from the query.
 
   # Example
-    iex> container = Container.new("TestItemsDb", "ItemsContainer")
-    iex> {:ok, response} = CosmosDbEx.Client.get_documents(container)
-    iex> {:ok, response} = CosmosDbEx.Client.get_documents(container, CosmosDbEx.Response.get_continuation_token(response))
+      iex> container = Container.new("TestItemsDb", "ItemsContainer")
+      iex> {:ok, response} = CosmosDbEx.get_documents(container)
+      iex> {:ok, response} = CosmosDbEx.get_documents(container, CosmosDbEx.Response.get_continuation_token(response))
 
-  Note that Cosmos Db returns results in pages of up to a maximum of 1000 items.
+  > NOTE: Cosmos Db returns results in pages of up to a maximum of 1000 items.
 
   Returns nil if no continuation token is found.  Nil also signals that there are no more items left
   from the query.
   """
-  def get_continuation_token(%__MODULE__{
+  @spec get_continuation_token(t()) :: map()
+  def get_continuation_token(%{
         properties: %{continuation_token: continuation_token}
       }) do
     continuation_token

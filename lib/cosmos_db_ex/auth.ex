@@ -24,7 +24,7 @@ defmodule CosmosDbEx.Auth do
    that this must also be the date passed in the `x-ms-date` header.
    Example: "Tue, 01 Nov 1994 08:12:31 GMT".
 
-   - key: This is the **Enecoded** key for your Cosmos Db database. It is usually either the primary
+   - key: This is the **Encoded** key for your Cosmos Db database. It is usually either the primary
    or secondary key that can be found in the `Keys` setting in your databases blade.  *Note: This
    key should never be saved and controlled in any repo.  The key should be retrieved from something
    like Azure Key Vault, or an environment variable.*
@@ -40,7 +40,8 @@ defmodule CosmosDbEx.Auth do
   I'm not really certain how much compute it takes to decode a Base64 encoded string, but there are
   actually Elixir libraries out there that drop down to 'C' just to make it faster.  If it turns out
   that constantly decoding the key hampers performance then we can see about possibly storing the
-  # decoded key in ETS to reduce compute a little bit.
+  decoded key in ETS to reduce compute a little bit.
+
   """
   def generate_auth_signature(
         http_verb,
@@ -91,7 +92,7 @@ defmodule CosmosDbEx.Auth do
     decoded_key = key |> Base.decode64!()
 
     :sha256
-    |> :crypto.hmac(decoded_key, payload)
+    |> hmac_fun(decoded_key, payload)
     |> Base.encode64()
   end
 
@@ -99,5 +100,11 @@ defmodule CosmosDbEx.Auth do
     part
     |> String.trim()
     |> String.downcase()
+  end
+
+  if Code.ensure_loaded?(:crypto) and function_exported?(:crypto, :mac, 4) do
+    defp hmac_fun(digest, key, data), do: :crypto.mac(:hmac, digest, key, data)
+  else
+    defp hmac_fun(digest, key, data), do: :crypto.hmac(digest, key, data)
   end
 end

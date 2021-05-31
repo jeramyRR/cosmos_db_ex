@@ -1,6 +1,32 @@
 defmodule CosmosDbEx do
   @moduledoc """
   Contains the basic functions needed to communicate with CosmosDb.
+
+  ## Configuration
+
+  There are specific configuration values that must be present in order to communicate with your
+  instance of Cosmos Db.  They are:
+
+    * `COSMOS DB KEY` - This is either the *primary* or *secondary* Read-Write key of your database.
+    You can find these keys under the 'Keys' tab of your databases settings.
+    This value can be set in your apps config using `:cosmos_db_key` or as an environment variable
+    named `COSMOS_DB_KEY`.
+
+    * `COSMOS DB HOST URL` - This is the URI to your Cosmos DB instance. The value can be found
+    under the Essentials section of your Cosmos Db Overview.
+    This value can be set in your apps config using `:cosmos_db_host_url` or as an environment
+    variable named `COSMOS_DB_HOST_URL`.
+
+
+  Example using your apps configuration settings:
+
+      config :cosmos_db_ex,
+        cosmos_db_key: "{your_primary_or_secondary_key_here}",
+        cosmos_db_host_url: "https://your-cosmos-db.documents.azure.com/",
+
+  Remember that your keys are **secrets** that should never be saved in any version control system. If
+  you're going to use the config option please take caution and look at using a config provider
+  that retrieves the secrets from a vault or the environment.
   """
   alias CosmosDbEx.{Container, Documents}
 
@@ -56,6 +82,9 @@ defmodule CosmosDbEx do
 
   ## Examples
 
+    Retrieve all documents from a container using the default max_items of 100 and no continuation
+    token.
+
       iex> CosmosDbEx.Container.new("database", "container") |> CosmosDbEx.get_documents()
       {:ok,
        %CosmosDbEx.Response{
@@ -90,6 +119,8 @@ defmodule CosmosDbEx do
         resource_id: "Hj8rAI2HN48="
        }
       }
+
+    Retrieve the first two documents from a container.
 
       iex> container = CosmosDbEx.Container.new("database", "container")
       iex> {:ok, response} = container |> CosmosDbEx.get_documents(2)
@@ -129,7 +160,13 @@ defmodule CosmosDbEx do
           resource_id: "Hj8rAI2HN48="
          }
         }
-        iex> {:ok, response} = container |> CosmosDbEx.get_documents(response.properties.continuation_token)
+
+
+    A continuation of the example above.  Using the continuation token retrieves the next page of
+    documents.  This can also be combined with `max_item_count` to restrict how many items are returned
+    during continuation as well.
+
+      iex> {:ok, response} = container |> CosmosDbEx.get_documents(response.properties.continuation_token)
         {:ok,
           %CosmosDbEx.Response{
             body: %{

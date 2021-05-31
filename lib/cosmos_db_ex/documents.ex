@@ -10,7 +10,7 @@ defmodule CosmosDbEx.Documents do
   require Logger
 
   use Timex
-  alias CosmosDbEx.{Auth, Config, Container, Response}
+  alias CosmosDbEx.{Auth, Container, Response}
 
   @accept_header "Accept"
   @authorization_header "Authorization"
@@ -55,7 +55,7 @@ defmodule CosmosDbEx.Documents do
     headers = [{@partition_key_header, partition_keys_json}]
 
     "dbs/#{container.database}/colls/#{container.container_name}/docs/#{id}"
-    |> send_get_request(headers)
+    |> send_get_request(container, headers)
     |> parse_response()
   end
 
@@ -74,7 +74,7 @@ defmodule CosmosDbEx.Documents do
       end
 
     "dbs/#{container.database}/colls/#{container.container_name}/docs"
-    |> send_get_request(headers)
+    |> send_get_request(container, headers)
     |> parse_response()
   end
 
@@ -94,7 +94,7 @@ defmodule CosmosDbEx.Documents do
     ]
 
     "dbs/#{container.database}/colls/#{container.container_name}/docs"
-    |> send_post_request(body, headers)
+    |> send_post_request(container, body, headers)
     |> parse_response()
   end
 
@@ -108,32 +108,39 @@ defmodule CosmosDbEx.Documents do
     headers = [{@partition_key_header, partition_keys_json}]
 
     "dbs/#{container.database}/colls/#{container.container_name}/docs"
-    |> send_post_request(item, headers)
+    |> send_post_request(container, item, headers)
     |> parse_response()
   end
 
-  defp send_get_request(path, headers) do
+  defp send_get_request(path, container, headers)
+       when is_binary(path) and
+              is_struct(container) and
+              is_list(headers) do
     headers =
       case Enum.empty?(headers) do
-        true -> build_common_headers("get", path)
-        false -> Enum.concat(build_common_headers("get", path), headers)
+        true -> build_common_headers("get", container, path)
+        false -> Enum.concat(build_common_headers("get", container, path), headers)
       end
 
-    url = build_request_url(path)
+    url = build_request_url(container, path)
 
     :get
     |> Finch.build(url, headers)
     |> Finch.request(CosmosDbEx.Application)
   end
 
-  defp send_post_request(path, item, headers) do
+  defp send_post_request(path, container, item, headers)
+       when is_binary(path) and
+              is_struct(container) and
+              is_map(item) and
+              is_list(headers) do
     headers =
       case Enum.empty?(headers) do
-        true -> build_common_headers("post", path)
-        false -> Enum.concat(build_common_headers("post", path), headers)
+        true -> build_common_headers("post", container, path)
+        false -> Enum.concat(build_common_headers("post", container, path), headers)
       end
 
-    url = build_request_url(path)
+    url = build_request_url(container, path)
 
     body = Jason.encode!(item)
 
@@ -142,14 +149,15 @@ defmodule CosmosDbEx.Documents do
     |> Finch.request(CosmosDbEx.Application)
   end
 
-  defp build_request_url(path) do
-    host_url = Config.get_cosmos_host_url()
-
-    "https://#{host_url}/#{path}"
+  defp build_request_url(container, path)
+       when is_struct(container) and
+              is_binary(path) do
+    "https://#{container.database_url}/#{path}"
   end
 
-  defp build_common_headers(http_verb, path) do
-    key = Config.get_cosmos_db_key()
+  defp build_common_headers(http_verb, container, path)
+       when is_binary(http_verb) and is_struct(container) and is_binary(path) do
+    key = container.database_key
     key_type = "master"
     date = get_datetime_now()
 
