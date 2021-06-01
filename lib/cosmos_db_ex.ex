@@ -249,6 +249,7 @@ defmodule CosmosDbEx do
 
   ## Parameters
 
+   - container: The container containing the database metadata.
    - query: The query contains the SQL query text.
    - params: A List of key/value pairs that correspond to values in the query.
 
@@ -260,9 +261,10 @@ defmodule CosmosDbEx do
 
   ## Example:
 
+      iex> container = CosmosDbEx.Container.new("database", "container")
       iex> query_text = "SELECT * FROM ItemsContainer c WHERE c.id = @id and c.name = @name"
       iex> params = [{"id", "ACME-HD-WOLF01234"}, {"name", "ACME hair dryer"}]
-      iex> CosmosDbEx.query(query_text, params)
+      iex> CosmosDbEx.query(container, query_text, params)
       {:ok,
        %CosmosDbEx.Response{
          body: %{
@@ -307,10 +309,8 @@ defmodule CosmosDbEx do
   @doc """
   Creates a new document in the specified database and container.
 
-  Documents can be any struct that implements the CosmosDbEx.Client.Documents.Identifiable protocol,
-  or any struct or map that contains an id field.  The Identifiable protocol contains a single
-  function that must be implemented, called get_id().  You can return a string in any format to
-  represent the id given to CosmosDb.
+  Documents can be any struct or map that contain an :id field, or you can implement the
+  `CosmosDbEx.Documents.Identifiable` protocol to customize the creation of a documents id.
 
   > NOTE:  You must implement the Jason.Encoder protocol for any struct that will be used as the
   > document being created.  You can do this by adding the following to your struct definition:
